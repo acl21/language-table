@@ -23,70 +23,88 @@ import numpy as np
 
 @dataclasses.dataclass
 class Block2BlockTaskInfo:
-  """Data class defining a chosen block2block task after reset."""
-  instruction: str
-  block1: str
-  block2: str
+    """Data class defining a chosen block2block task after reset."""
+
+    instruction: str
+    block1: str
+    block2: str
+
+
+@dataclasses.dataclass
+class Block2GoalsTaskInfo:
+    """Class defining a chosen block2block task after reset."""
+
+    instruction: str
+    block: dict
+    target_translation: dict
+    location: dict
 
 
 @dataclasses.dataclass
 class Block2LocationTaskInfo:
-  """Class defining a chosen block2block task after reset."""
-  instruction: str
-  block: str
-  target_translation: np.ndarray
-  location: str
+    """Class defining a chosen block2block task after reset."""
+
+    instruction: str
+    block: str
+    target_translation: np.ndarray
+    location: str
 
 
 @dataclasses.dataclass
 class Block2LineTaskInfo:
-  """Class defining a chosen block2block task after reset."""
-  instruction: str
-  block: str
-  target_translation: np.ndarray
+    """Class defining a chosen block2block task after reset."""
+
+    instruction: str
+    block: str
+    target_translation: np.ndarray
 
 
 @dataclasses.dataclass
 class Block2PoleTaskInfo:
-  """Data class defining a chosen block2pole task after reset."""
-  instruction: str
-  block1: str
-  goal: str
+    """Data class defining a chosen block2pole task after reset."""
+
+    instruction: str
+    block1: str
+    goal: str
 
 
 @dataclasses.dataclass
 class Block2RelativeLocationTaskInfo:
-  """Class defining a chosen block2block task after reset."""
-  instruction: str
-  block: str
-  target_translation: np.ndarray
-  location: str
+    """Class defining a chosen block2block task after reset."""
+
+    instruction: str
+    block: str
+    target_translation: np.ndarray
+    location: str
 
 
 @dataclasses.dataclass
 class Block2BlockRelativeLocationTaskInfo:
-  """Class defining a chosen block2block task after reset."""
-  instruction: str
-  block: str
-  target_block: str
-  direction: str
-  target_translation: np.ndarray
+    """Class defining a chosen block2block task after reset."""
+
+    instruction: str
+    block: str
+    target_block: str
+    direction: str
+    target_translation: np.ndarray
 
 
 @dataclasses.dataclass
 class SeparateBlocksTaskInfo:
-  """Class defining a chosen "separate blocks" task after reset."""
-  instruction: str
-  block: str
-  avoid_blocks: List[str]
-  target_translation: np.ndarray
+    """Class defining a chosen "separate blocks" task after reset."""
+
+    instruction: str
+    block: str
+    avoid_blocks: List[str]
+    target_translation: np.ndarray
 
 
 @dataclasses.dataclass
 class Point2BlockTaskInfo:
-  """Data class defining a chosen point2block task after reset."""
-  instruction: str
-  block_target: str
+    """Data class defining a chosen point2block task after reset."""
+
+    instruction: str
+    block_target: str
 
 
 ALL_TASKS = [
@@ -101,4 +119,4 @@ ALL_TASKS = [
 ]
 
 # Return this if cannot create a valid board state and need to reset.
-FAILURE = 'failure'
+FAILURE = "failure"
