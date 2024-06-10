@@ -755,7 +755,7 @@ class LanguageTableNew(gym.Env):
             self._block_ids.append(block_id)
             self._block_to_pybullet_id[block] = block_id
 
-        if self._debug_visuals:
+        if self._debug_visuals or self._show_goals:
             self._goal_circle = {}
             self._goal_circle[RED_BLOCK] = add_visual_circle(
                 self._pybullet_client,
