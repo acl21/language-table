@@ -44,12 +44,11 @@ def main(argv):
     _ = env.reset()
 
     # Take a few random actions.
-    # for _ in range(5):
-    #     env.step(np.array([0.0, 0.05]))
+    for _ in range(5):
+        env.step(np.array([0.0, 0.05]))
 
-    # # Save a rendered image.
-    # plt.imsave("language_table_render.png", env.render())
-    env.render()
+    # Save a rendered image.
+    plt.imsave("language_table_render.png", env.render())
 
 
 if __name__ == "__main__":

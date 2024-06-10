@@ -59,13 +59,6 @@ class Locations(enum.Enum):
     BOTTOM_LEFT = "bottom_left"
     BOTTOM_RIGHT = "bottom_right"
 
-
-RED_GOAL_LOCATION = "top_right"
-GREEN_GOAL_LOCATION = "top_left"
-
-RED_BLOCK = "red_cube"
-GREEN_BLOCK = "green_cube"
-
 ABSOLUTE_LOCATIONS = {
     "top": [X_MIN, CENTER_Y],
     "top_left": [X_MIN + 3 * X_BUFFER, Y_MIN + 3 * X_BUFFER],
@@ -110,14 +103,18 @@ LOCATION_SYNONYMS = {
     ],
 }
 
+
+RED_GOAL = "top_left"
+GREEN_GOAL = "bottom_left"
+
 GOAL_LOCATIONS = {
-    RED_BLOCK: [X_MIN + 3 * X_BUFFER, Y_MIN + 3 * X_BUFFER],
-    GREEN_BLOCK: [X_MAX - 3 * X_BUFFER, Y_MIN + 3 * X_BUFFER],
+    RED_GOAL: [X_MIN + 3 * X_BUFFER, Y_MIN + 3 * X_BUFFER],
+    GREEN_GOAL: [X_MAX - 3 * X_BUFFER, Y_MIN + 3 * X_BUFFER],
 }
 
 GOAL_SYNONYMS = {
-    RED_BLOCK: ["red circle", "red dot", "red marker", "red goal"],
-    GREEN_BLOCK: [
+    RED_GOAL: ["red circle", "red dot", "red marker", "red goal"],
+    GREEN_GOAL: [
         "green circle",
         "green dot",
         "green marker",
@@ -160,6 +157,7 @@ class BlockToRGLocationReward(base_reward.LanguageTableReward):
         self._instruction = None
         self._location = None
         self._target_translation = None
+        self._goal = None
 
     def _sample_instruction(self, block, blocks_on_table):
         """Randomly sample a task involving two objects."""
@@ -170,42 +168,37 @@ class BlockToRGLocationReward(base_reward.LanguageTableReward):
             synonyms.get_block_synonyms(block, blocks_on_table)
         )
         # Get some synonym for location.
-        location_syn = self._rng.choice(GOAL_SYNONYMS[block])
+        location_syn = self._rng.choice(GOAL_SYNONYMS[self._goal])
         return f"{verb} {block_text} to the {location_syn}"
 
     def reset(self, state, blocks_on_table):
         """Chooses new target block and location."""
-        info = self.reset_to(state, blocks_on_table)
+        block = self._sample_object(blocks_on_table)
+
+        location = self._goal
+
+        info = self.reset_to(state, block, location, blocks_on_table)
         # If the state of the board already triggers the reward, try to reset
         # again with a new configuration.
-        for block in self._block:
-            if self._in_goal_region_start(
-                state, block, self._target_translation[block]
-            ):
-                # Try again with a new board configuration.
-                return task_info.FAILURE
+        if self._in_goal_region_start(
+            state, self._block, self._target_translation
+        ):
+            # Try again with a new board configuration.
+            return task_info.FAILURE
         return info
 
-    def reset_to(self, state, blocks_on_table):
+    def reset_to(self, state, block, location, blocks_on_table):
         """Reset to a particular task definition."""
-        self._block = [RED_BLOCK, GREEN_BLOCK]
+        self._block = block
+        
         # Sample an instruction.
-        self._instruction = ""
-        for idx, block in enumerate(self._block):
-            self._instruction += self._sample_instruction(block, blocks_on_table)
-            if idx != len(self._block) - 1:
-                self._instruction += " and "
+        self._instruction = self._sample_instruction(block, blocks_on_table)
 
         # Get the corresponding target_translation.
-        target_translation = {}
-        for block in self._block:
-            target_translation[block] = np.array(GOAL_LOCATIONS[block])
+        target_translation = np.array(GOAL_LOCATIONS[location])
 
         # Cache the target location corresponding to the instruction.
-        self._target_translation = target_translation
-        location = {}
-        for block in self._block:
-            location[block] = np.array(GOAL_LOCATIONS[block])
+        self._target_translation = np.copy(target_translation)
         self._location = location
         info = self.get_current_task_info(state)
         self._in_reward_zone_steps = 0
@@ -221,15 +214,10 @@ class BlockToRGLocationReward(base_reward.LanguageTableReward):
 
     def reward(self, state):
         """Calculates reward given state."""
-        total_reward = 0.0
-        for block in self._block:
-            reward, done = self.reward_for(
-                state, block, self._target_translation[block]
-            )
-            total_reward += reward
-        if total_reward == len(self._block) * self._goal_reward:
-            done = True
-        return total_reward, done
+        reward, done = self.reward_for(
+            state, self._block, self._target_translation
+        )
+        return reward, done
 
     def reward_for(self, state, pushing_block, target_translation):
         """Returns 1. if pushing_block is in location."""
@@ -283,17 +271,14 @@ class BlockToRGLocationReward(base_reward.LanguageTableReward):
 
     def debug_info(self, state):
         """Returns 1. if pushing_block is in location."""
-        debug_info = {}
-        for block in self._block:
-            # Get current location of the target block.
-            current_translation, _ = self._get_pose_for_block(block, state)
-            # Compute distance between current translation and target.
-            dist = np.linalg.norm(
-                np.array(current_translation)
-                - np.array(self._target_translation[block])
-            )
-            debug_info[block] = dist
-        return debug_info
+        # Get current location of the target block.
+        current_translation, _ = self._get_pose_for_block(self._block, state)
+        # Compute distance between current translation and target.
+        dist = np.linalg.norm(
+            np.array(current_translation)
+            - np.array(self._target_translation)
+        )
+        return dist
 
     def get_current_task_info(self, state):
         return task_info.Block2GoalsTaskInfo(

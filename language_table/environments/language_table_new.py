@@ -41,12 +41,12 @@ from scipy.spatial import transform
 import pybullet
 import pybullet_utils.bullet_client as bullet_client
 
-RED_BLOCK = "red_cube"
-GREEN_BLOCK = "green_cube"
+from language_table.environments.rewards.block2rglocation import RED_GOAL, GREEN_GOAL, GOAL_LOCATIONS
+
 
 rgba_dict = {
-    RED_BLOCK: (1, 0, 0, 0.5),
-    GREEN_BLOCK: (0, 1, 0, 0.5),
+    RED_GOAL: (1, 0, 0, 0.5),
+    GREEN_GOAL: (0, 1, 0, 0.5),
 }
 
 
@@ -66,6 +66,8 @@ class LanguageTableNew(gym.Env):
         debug_visuals=False,
         add_invisible_walls=False,
         show_goals=False,
+        show_gui=False,
+        goal_color=None,
     ):
         """Creates an env instance.
 
@@ -117,6 +119,12 @@ class LanguageTableNew(gym.Env):
         self._connection_mode = pybullet.DIRECT
         if shared_memory:
             self._connection_mode = pybullet.SHARED_MEMORY
+        if shared_memory and show_gui:
+            raise ValueError(
+                "Cannot use shared memory and GUI together. "
+            )
+        if show_gui:
+            self._connection_mode = pybullet.GUI
         self._setup_pybullet_scene()
         self._saved_state = None
 
@@ -150,6 +158,15 @@ class LanguageTableNew(gym.Env):
                 delay_reward_steps=delay_reward_steps,
                 block_mode=block_mode,
             )
+            if goal_color is not None:
+                if "red" in goal_color:
+                    self._reward_calculator._goal = RED_GOAL
+                elif "green" in goal_color:
+                    self._reward_calculator._goal = GREEN_GOAL
+                else:
+                    raise ValueError("Invalid goal color.")
+            else:
+                raise ValueError("Goal color must be specified.")
 
         self.action_space = spaces.Box(low=-0.1, high=0.1, shape=(2,))  # x, y
         # Recreate the observation space after creating the reward.
@@ -175,7 +192,7 @@ class LanguageTableNew(gym.Env):
         if self._reward_calculator is not None and self._show_goals:
             target_translation, goal_radius = self._reward_calculator.get_goal_region()
             if target_translation is not None and goal_radius is not None:
-                for k, v in target_translation.items():
+                for k, v in GOAL_LOCATIONS.items():
                     center = (v[0], v[1], 0.0)
                     self._pybullet_client.removeBody(self._goal_circle[k])
                     add_visual_circle(
@@ -204,7 +221,7 @@ class LanguageTableNew(gym.Env):
         else:
             reward, done = self._reward_calculator.reward(state)
         observation = self._compute_observation(state=state)
-        return observation, reward, done, {}
+        return observation, reward, done, {"state": state}
 
     def render(self, mode="rgb_array"):
         image = self._render_camera(image_size=self._image_size)
@@ -472,26 +489,12 @@ class LanguageTableNew(gym.Env):
             self._target_effector_pose.translation[0:2], np.float32
         )
         obs = collections.OrderedDict()
-        if isinstance(self._start_block, list):
-            obs.update(
-                effector_target_to_red_block_translation=np.array(
-                    poses[RED_BLOCK][0][0:2] - e_target_trans, np.float32
-                ),
-                red_block_orientation=self._yaw_from_pose(poses[RED_BLOCK]),
-            )
-            obs.update(
-                effector_target_to_green_block_translation=np.array(
-                    poses[GREEN_BLOCK][0][0:2] - e_target_trans, np.float32
-                ),
-                green_block_orientation=self._yaw_from_pose(poses[GREEN_BLOCK]),
-            )
-        else:
-            obs.update(
-                effector_target_to_start_block_translation=np.array(
-                    poses[self._start_block][0][0:2] - e_target_trans, np.float32
-                ),
-                start_block_orientation=self._yaw_from_pose(poses[self._start_block]),
-            )
+        obs.update(
+            effector_target_to_start_block_translation=np.array(
+                poses[self._start_block][0][0:2] - e_target_trans, np.float32
+            ),
+            start_block_orientation=self._yaw_from_pose(poses[self._start_block]),
+        )
 
         for k in self._get_urdf_paths().keys():
             obs["block_%s_translation" % k] = np.array(poses[k][0][0:2], np.float32)
@@ -563,22 +566,12 @@ class LanguageTableNew(gym.Env):
     def _update_obs_with_oracle_task_info(self, obs, poses, e_target_trans):
         # Tell obs what the 'start_block' is. This is the block the oracle is
         # pushing.
-        if isinstance(self._start_block, list):
-            obs["effector_target_to_red_block_translation"] = np.array(
-                poses[RED_BLOCK][0][0:2] - e_target_trans, np.float32
-            )
-            obs["red_block_orientation"] = self._yaw_from_pose(poses[RED_BLOCK])
-            obs["effector_target_to_green_block_translation"] = np.array(
-                poses[GREEN_BLOCK][0][0:2] - e_target_trans, np.float32
-            )
-            obs["green_block_orientation"] = self._yaw_from_pose(poses[GREEN_BLOCK])
-        else:
-            obs["effector_target_to_start_block_translation"] = np.array(
-                poses[self._start_block][0][0:2] - e_target_trans, np.float32
-            )
-            obs["start_block_orientation"] = self._yaw_from_pose(
-                poses[self._start_block]
-            )
+        obs["effector_target_to_start_block_translation"] = np.array(
+            poses[self._start_block][0][0:2] - e_target_trans, np.float32
+        )
+        obs["start_block_orientation"] = self._yaw_from_pose(
+            poses[self._start_block]
+        )
 
         # Tell obs what the 'target_translation' is. This is the invisible target
         # the oracle is pushing to.
@@ -589,22 +582,10 @@ class LanguageTableNew(gym.Env):
             # "distance to target" feature across multiple tasks
             # (block2block, block2location) as info that allows the oracle to
             # complete the task. We may want to refactor this.
-            if isinstance(self._oracle_target_translation, dict):
-                obs["effector_target_to_red_target_translation"] = np.array(
-                    self._oracle_target_translation[RED_BLOCK] - e_target_trans,
-                    np.float32,
-                )
-                obs["effector_target_to_green_target_translation"] = np.array(
-                    self._oracle_target_translation[GREEN_BLOCK] - e_target_trans,
-                    np.float32,
-                )
-                obs["red_target_orientation"] = np.array([0.0], np.float32)
-                obs["green_target_orientation"] = np.array([0.0], np.float32)
-            else:
-                obs["effector_target_to_task_target_translation"] = np.array(
-                    self._oracle_target_translation - e_target_trans, np.float32
-                )
-                obs["task_target_orientation"] = np.array([0.0], np.float32)
+            obs["effector_target_to_task_target_translation"] = np.array(
+                self._oracle_target_translation - e_target_trans, np.float32
+            )
+            obs["task_target_orientation"] = np.array([0.0], np.float32)
         # Tell obs what the 'target_block' is. This is the block the oracle is
         # pushing to.
         elif self._oracle_target_block is not None:
@@ -754,21 +735,23 @@ class LanguageTableNew(gym.Env):
             block_id = utils_pybullet.load_urdf(self._pybullet_client, path)
             self._block_ids.append(block_id)
             self._block_to_pybullet_id[block] = block_id
-
-        if self._debug_visuals or self._show_goals:
+        
+        if self._show_goals:
             self._goal_circle = {}
-            self._goal_circle[RED_BLOCK] = add_visual_circle(
+            self._goal_circle[RED_GOAL] = add_visual_circle(
                 self._pybullet_client,
                 center=(0, 0, 0),
                 radius=0.02,
-                rgba=rgba_dict[RED_BLOCK],
+                rgba=rgba_dict[RED_GOAL],
             )
-            self._goal_circle[GREEN_BLOCK] = add_visual_circle(
+            self._goal_circle[GREEN_GOAL] = add_visual_circle(
                 self._pybullet_client,
                 center=(0, 0, 0),
                 radius=0.02,
-                rgba=rgba_dict[GREEN_BLOCK],
+                rgba=rgba_dict[GREEN_GOAL],
             )
+
+        if self._debug_visuals:
             # Board boundary markers.
             # Top left.
             buffer = 0.02
@@ -921,10 +904,10 @@ class LanguageTableNew(gym.Env):
         elif isinstance(info, task_info.Block2GoalsTaskInfo):
             # Get the info parameterizing "block2goals" tasks.
             instruction_str = info.instruction
-            self._start_block = info.block[0]
+            self._start_block = info.block
             self._oracle_target_block = None
-            self._oracle_target_translation = info.location
-            self._target_absolute_location = None
+            self._oracle_target_translation = info.target_translation
+            self._target_absolute_location = info.location
             self._target_relative_location = None
         else:
             raise ValueError("Unknown task info: %s" % info)

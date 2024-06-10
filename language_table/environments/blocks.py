@@ -30,6 +30,9 @@ class LanguageTableBlockVariants(enum.Enum):
     N_CHOOSE_K = "N_CHOOSE_K"  # Combinatorial.
     BLOCK_RGB = "BLOCK_RGB"  # 3 blocks, red, green, blue.
     BLOCK_RG = "BLOCK_RG"  # 2 blocks, red, green.
+    BLOCK_R = "BLOCK_R"  # 1 block, red.
+    BLOCK_G = "BLOCK_G"  # 1 block, green.
+    BLOCK_B = "BLOCK_B"  # 1 block, blue.
 
 
 BLOCK_VARIANTS = [i.value for i in LanguageTableBlockVariants]
@@ -56,6 +59,12 @@ def get_all_block_subsets(mode, training):
         return [FIXED_RGB_COMBINATION]
     elif mode == LanguageTableBlockVariants.BLOCK_RG:
         return [FIXED_RG_COMBINATION]
+    elif mode == LanguageTableBlockVariants.BLOCK_R:
+        return [FIXED_R_COMBINATION]
+    elif mode == LanguageTableBlockVariants.BLOCK_G:
+        return [FIXED_G_COMBINATION]
+    elif mode == LanguageTableBlockVariants.BLOCK_B:
+        return [FIXED_B_COMBINATION]
     else:
         raise ValueError("Unsupported block mode")
 
@@ -74,6 +83,12 @@ def get_block_set(mode):
         return FIXED_RGB_COMBINATION
     elif mode == LanguageTableBlockVariants.BLOCK_RG:
         return FIXED_RG_COMBINATION
+    elif mode == LanguageTableBlockVariants.BLOCK_R:
+        return FIXED_R_COMBINATION
+    elif mode == LanguageTableBlockVariants.BLOCK_G:
+        return FIXED_G_COMBINATION
+    elif mode == LanguageTableBlockVariants.BLOCK_B:
+        return FIXED_B_COMBINATION
     else:
         raise ValueError("Unsupported block mode")
 
@@ -183,3 +198,12 @@ FIXED_RGB_COMBINATION = ("red_cube", "green_cube", "blue_cube")
 
 # Red and green blocks.
 FIXED_RG_COMBINATION = ("red_cube", "green_cube")
+
+# Red block.
+FIXED_R_COMBINATION = ("red_cube",)
+
+# Green block.
+FIXED_G_COMBINATION = ("green_cube",)
+
+# Blue block.
+FIXED_B_COMBINATION = ("blue_cube",)
