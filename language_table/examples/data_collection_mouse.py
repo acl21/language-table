@@ -31,9 +31,24 @@ import numpy as np
 import time
 import cv2
 import pybullet as p
+from pynput import mouse
+import threading
 
+# Global variable to store mouse position
+mouse_position = [0, 0]
 
-# Function to handle key presses
+def on_move(x, y):
+    global mouse_position
+    mouse_position = [x, y]
+
+# Function to start the mouse listener
+def start_mouse_listener():
+    with mouse.Listener(on_move=on_move) as listener:
+        listener.join()
+
+# Start the mouse listener in a separate thread
+mouse_listener_thread = threading.Thread(target=start_mouse_listener)
+mouse_listener_thread.start()
 
 
 def main(argv):
@@ -63,10 +78,17 @@ def main(argv):
     recording = False
     action_key_pressed = False
     delete_last_episode = False
+    prev_mouse_position = None
     try:
         while True:
             keys = p.getKeyboardEvents()
-            (x, y), action_key_pressed = get_action_keyboard(keys)
+            action_key_pressed = is_action_key_pressed(keys)
+            if recording:
+                if prev_mouse_position is None:
+                    prev_mouse_position = mouse_position
+                else:
+                    y, x = np.clip((np.array(mouse_position) - np.array(prev_mouse_position)) / 10, -0.005, 0.005)
+                    prev_mouse_position = mouse_position
 
             # Space to start recording
             if p.B3G_SPACE in keys and keys[p.B3G_SPACE] and p.KEY_WAS_RELEASED:
@@ -90,7 +112,9 @@ def main(argv):
                     recording = False
                     recorder.delete_last_episode()
                     env.reset()
+                    # raise ValueError("Cannot reset while recording")
             
+            # Do the needful only when action key is pressed
             if action_key_pressed:
                 if delete_last_episode:
                     recorder.delete_last_episode()
@@ -113,23 +137,18 @@ def main(argv):
         recorder._save()
         cv2.destroyAllWindows()
 
-def get_action_keyboard(keys):
+def is_action_key_pressed(keys):
     action_key_pressed = False
-    x, y = 0, 0
     # Arrow keys to move the arm
     if p.B3G_LEFT_ARROW in keys and keys[p.B3G_LEFT_ARROW]:
-        y = -0.01
         action_key_pressed = True
     if p.B3G_RIGHT_ARROW in keys and keys[p.B3G_RIGHT_ARROW]:
-        y = 0.01
         action_key_pressed = True
     if p.B3G_UP_ARROW in keys and keys[p.B3G_UP_ARROW]:
-        x = -0.01
         action_key_pressed = True
     if p.B3G_DOWN_ARROW in keys and keys[p.B3G_DOWN_ARROW]:
-        x = 0.01
         action_key_pressed = True
-    return (x, y), action_key_pressed
+    return action_key_pressed
 
 
 if __name__ == "__main__":
