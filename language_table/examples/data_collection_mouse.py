@@ -82,14 +82,18 @@ def main(argv):
     try:
         while True:
             keys = p.getKeyboardEvents()
-            action_key_pressed = is_action_key_pressed(keys)
+
             if recording:
                 if prev_mouse_position is None:
                     prev_mouse_position = mouse_position
                 else:
                     y, x = np.clip((np.array(mouse_position) - np.array(prev_mouse_position)) / 10, -0.005, 0.005)
                     prev_mouse_position = mouse_position
-
+            
+            # Action is applied when mouse only when "m" is pressed
+            if ord("m") in keys and keys[ord("m")] and p.KEY_WAS_RELEASED:
+                action_key_pressed = True
+            
             # Space to start recording
             if p.B3G_SPACE in keys and keys[p.B3G_SPACE] and p.KEY_WAS_RELEASED:
                 recording = True
@@ -112,9 +116,8 @@ def main(argv):
                     recording = False
                     recorder.delete_last_episode()
                     env.reset()
-                    # raise ValueError("Cannot reset while recording")
             
-            # Do the needful only when action key is pressed
+            # Do the needful only when action key "m" is pressed
             if action_key_pressed:
                 if delete_last_episode:
                     recorder.delete_last_episode()
@@ -132,24 +135,11 @@ def main(argv):
                         recorder.stop_recording()
                         recording = False
                     env.reset()
+
     except KeyboardInterrupt:
         env.close()
         recorder._save()
         cv2.destroyAllWindows()
-
-def is_action_key_pressed(keys):
-    action_key_pressed = False
-    # Arrow keys to move the arm
-    if p.B3G_LEFT_ARROW in keys and keys[p.B3G_LEFT_ARROW]:
-        action_key_pressed = True
-    if p.B3G_RIGHT_ARROW in keys and keys[p.B3G_RIGHT_ARROW]:
-        action_key_pressed = True
-    if p.B3G_UP_ARROW in keys and keys[p.B3G_UP_ARROW]:
-        action_key_pressed = True
-    if p.B3G_DOWN_ARROW in keys and keys[p.B3G_DOWN_ARROW]:
-        action_key_pressed = True
-    return action_key_pressed
-
 
 if __name__ == "__main__":
     app.run(main)
