@@ -28,7 +28,7 @@ from language_table.environments.utils.pose3d import Pose3d
 import numpy as np
 from scipy.spatial import transform
 import six
-import tensorflow as tf
+# import tensorflow as tf
 
 
 import pybullet
@@ -448,34 +448,34 @@ def _deserialize_pybullet_state(state):
         raise ValueError("Unhandled type for object %s" % str(state))
 
 
-def write_pybullet_state(filename, pybullet_state, task, actions=None):
-    """Serialize pybullet state to json file."""
-    data = {
-        "pybullet_state": _serialize_pybullet_state(pybullet_state),
-        "state_version": PYBULLET_STATE_VERSION,
-        "ts_ms": int(time.mktime(datetime.datetime.now().timetuple())) * 1000,
-        "user": getpass.getuser(),
-        "task": task,
-        "actions": actions if actions is not None else [],
-    }
-    with tf.io.gfile.GFile(filename, "wb") as fdata:
-        with gzip.GzipFile(fileobj=fdata) as fzip:
-            fzip.write(json.dumps(data).encode("utf-8"))
+# def write_pybullet_state(filename, pybullet_state, task, actions=None):
+#     """Serialize pybullet state to json file."""
+#     data = {
+#         "pybullet_state": _serialize_pybullet_state(pybullet_state),
+#         "state_version": PYBULLET_STATE_VERSION,
+#         "ts_ms": int(time.mktime(datetime.datetime.now().timetuple())) * 1000,
+#         "user": getpass.getuser(),
+#         "task": task,
+#         "actions": actions if actions is not None else [],
+#     }
+#     with tf.io.gfile.GFile(filename, "wb") as fdata:
+#         with gzip.GzipFile(fileobj=fdata) as fzip:
+#             fzip.write(json.dumps(data).encode("utf-8"))
 
 
-def read_pybullet_state(filename):
-    """Deserialize pybullet state from json file."""
-    with tf.io.gfile.GFile(filename, "rb") as fdata:
-        with gzip.GzipFile(fileobj=fdata) as fzip:
-            data = json.loads(fzip.read().decode("utf-8"))
+# def read_pybullet_state(filename):
+#     """Deserialize pybullet state from json file."""
+#     with tf.io.gfile.GFile(filename, "rb") as fdata:
+#         with gzip.GzipFile(fileobj=fdata) as fzip:
+#             data = json.loads(fzip.read().decode("utf-8"))
 
-    assert isinstance(data, dict)
+#     assert isinstance(data, dict)
 
-    if data["state_version"] != PYBULLET_STATE_VERSION:
-        raise ValueError(
-            "incompatible state data (version %d, expected %d)"
-            % (data["state_version"], PYBULLET_STATE_VERSION)
-        )
+#     if data["state_version"] != PYBULLET_STATE_VERSION:
+#         raise ValueError(
+#             "incompatible state data (version %d, expected %d)"
+#             % (data["state_version"], PYBULLET_STATE_VERSION)
+#         )
 
-    data["pybullet_state"] = _deserialize_pybullet_state(data["pybullet_state"])
-    return data
+#     data["pybullet_state"] = _deserialize_pybullet_state(data["pybullet_state"])
+#     return data
