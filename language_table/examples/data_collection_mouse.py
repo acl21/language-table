@@ -20,9 +20,9 @@ from collections.abc import Sequence
 from absl import app
 
 from language_table.environments import blocks
-from language_table.environments import language_table_new
+from language_table.environments import language_table_4goals
 from language_table.environments.rewards import (
-    block2rglocation,
+    block2colours,
 )
 from language_table.utils.recorder import SimpleRecorder
 
@@ -55,19 +55,20 @@ def main(argv):
     if len(argv) > 1:
         raise app.UsageError("Too many command-line arguments.")
 
-    env = language_table_new.LanguageTableNew(
-        block_mode=blocks.LanguageTableBlockVariants.BLOCK_B,
-        reward_factory=block2rglocation.BlockToRGLocationReward,
+    goal_color = "red"
+    env = language_table_4goals.LanguageTable(
+        block_mode=blocks.LanguageTableBlockVariants.BLOCK_PURPLE,
+        reward_factory=block2colours.BlockToColoursReward,
         control_frequency=15.0,
         show_goals=True,
         render_text_in_image=False,
         show_gui=True,
-        goal_color="red"
+        goal_color=goal_color
     )
     _ = env.reset()
     
     # Data folder
-    data_folder = "data"
+    data_folder = f"data/push2{goal_color}"
     day = time.strftime("%Y-%m-%d")
     time_ = time.strftime("%H-%M-%S")
     data_folder = f"{data_folder}/{day}/{time_}"

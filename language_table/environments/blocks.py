@@ -30,9 +30,10 @@ class LanguageTableBlockVariants(enum.Enum):
     N_CHOOSE_K = "N_CHOOSE_K"  # Combinatorial.
     BLOCK_RGB = "BLOCK_RGB"  # 3 blocks, red, green, blue.
     BLOCK_RG = "BLOCK_RG"  # 2 blocks, red, green.
-    BLOCK_R = "BLOCK_R"  # 1 block, red.
-    BLOCK_G = "BLOCK_G"  # 1 block, green.
-    BLOCK_B = "BLOCK_B"  # 1 block, blue.
+    BLOCK_RED = "BLOCK_RED"  # 1 block, red.
+    BLOCK_GREEN = "BLOCK_GREEN"  # 1 block, green.
+    BLOCK_BLUE = "BLOCK_BLUE"  # 1 block, blue.
+    BLOCK_PURPLE = "BLOCK_PURPLE"  # 1 block, purple.
 
 
 BLOCK_VARIANTS = [i.value for i in LanguageTableBlockVariants]
@@ -59,12 +60,14 @@ def get_all_block_subsets(mode, training):
         return [FIXED_RGB_COMBINATION]
     elif mode == LanguageTableBlockVariants.BLOCK_RG:
         return [FIXED_RG_COMBINATION]
-    elif mode == LanguageTableBlockVariants.BLOCK_R:
-        return [FIXED_R_COMBINATION]
-    elif mode == LanguageTableBlockVariants.BLOCK_G:
-        return [FIXED_G_COMBINATION]
-    elif mode == LanguageTableBlockVariants.BLOCK_B:
-        return [FIXED_B_COMBINATION]
+    elif mode == LanguageTableBlockVariants.BLOCK_RED:
+        return [FIXED_RED_COMBINATION]
+    elif mode == LanguageTableBlockVariants.BLOCK_GREEN:
+        return [FIXED_GREEN_COMBINATION]
+    elif mode == LanguageTableBlockVariants.BLOCK_BLUE:
+        return [FIXED_BLUE_COMBINATION]
+    elif mode == LanguageTableBlockVariants.BLOCK_PURPLE:
+        return [FIXED_PURPLE_COMBINATION]
     else:
         raise ValueError("Unsupported block mode")
 
@@ -83,12 +86,12 @@ def get_block_set(mode):
         return FIXED_RGB_COMBINATION
     elif mode == LanguageTableBlockVariants.BLOCK_RG:
         return FIXED_RG_COMBINATION
-    elif mode == LanguageTableBlockVariants.BLOCK_R:
-        return FIXED_R_COMBINATION
-    elif mode == LanguageTableBlockVariants.BLOCK_G:
-        return FIXED_G_COMBINATION
-    elif mode == LanguageTableBlockVariants.BLOCK_B:
-        return FIXED_B_COMBINATION
+    elif mode == LanguageTableBlockVariants.BLOCK_RED:
+        return FIXED_RED_COMBINATION
+    elif mode == LanguageTableBlockVariants.BLOCK_GREEN:
+        return FIXED_GREEN_COMBINATION
+    elif mode == LanguageTableBlockVariants.BLOCK_BLUE:
+        return FIXED_BLUE_COMBINATION
     else:
         raise ValueError("Unsupported block mode")
 
@@ -128,6 +131,11 @@ BLOCK_URDF_PATHS = collections.OrderedDict(
     green_cube="third_party/py/language_table/environments/assets/blocks/green_cube.urdf",
     green_star="third_party/py/language_table/environments/assets/blocks/green_star.urdf",
     green_pentagon="third_party/py/language_table/environments/assets/blocks/green_pentagon.urdf",
+    # Purple blocks
+    purple_moon="third_party/py/language_table/environments/assets/blocks/purple_moon.urdf",
+    purple_cube="third_party/py/language_table/environments/assets/blocks/purple_cube.urdf",
+    purple_star="third_party/py/language_table/environments/assets/blocks/purple_star.urdf",
+    purple_pentagon="third_party/py/language_table/environments/assets/blocks/purple_pentagon.urdf",
 )
 
 POLE_URDF_PATHS = collections.OrderedDict(
@@ -137,7 +145,7 @@ POLE_URDF_PATHS = collections.OrderedDict(
 
 # Use this just to define the observation space.
 DUMMY_START_BLOCK = list(BLOCK_URDF_PATHS.keys())[0]
-COLORS = ["red", "blue", "green", "yellow"]
+COLORS = ["red", "blue", "green", "yellow", "purple"]
 SHAPES = ["moon", "cube", "star", "pentagon"]
 ALL_BLOCKS = ["_".join(i) for i in itertools.product(COLORS, SHAPES)]
 MIN_K = 4
@@ -200,10 +208,13 @@ FIXED_RGB_COMBINATION = ("red_cube", "green_cube", "blue_cube")
 FIXED_RG_COMBINATION = ("red_cube", "green_cube")
 
 # Red block.
-FIXED_R_COMBINATION = ("red_cube",)
+FIXED_RED_COMBINATION = ("red_cube",)
 
 # Green block.
-FIXED_G_COMBINATION = ("green_cube",)
+FIXED_GREEN_COMBINATION = ("green_cube",)
 
 # Blue block.
-FIXED_B_COMBINATION = ("blue_cube",)
+FIXED_BLUE_COMBINATION = ("blue_cube",)
+
+# Purple block
+FIXED_PURPLE_COMBINATION = ("purple_cube",)
