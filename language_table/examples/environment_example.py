@@ -20,9 +20,9 @@ from collections.abc import Sequence
 from absl import app
 
 from language_table.environments import blocks
-from language_table.environments import language_table_4goals
+from language_table.environments import language_table_multigoals
 from language_table.environments.rewards import (
-    block2colours
+    block2multicolours
 )
 
 from matplotlib import pyplot as plt
@@ -33,12 +33,12 @@ def main(argv):
     if len(argv) > 1:
         raise app.UsageError("Too many command-line arguments.")
 
-    env = language_table_4goals.LanguageTable(
+    env = language_table_multigoals.LanguageTable(
         block_mode=blocks.LanguageTableBlockVariants.BLOCK_PURPLE,
-        reward_factory=block2colours.BlockToColoursReward,
+        reward_factory=block2multicolours.BlockToMultiColoursReward,
         control_frequency=15.0,
         show_goals=True,
-        goal_color="red",
+        goal_color="red-blue-green-yellow",
         render_text_in_image=False,
     )
     _ = env.reset()

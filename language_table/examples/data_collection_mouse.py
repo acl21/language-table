@@ -20,9 +20,9 @@ from collections.abc import Sequence
 from absl import app
 
 from language_table.environments import blocks
-from language_table.environments import language_table_4goals
+from language_table.environments import language_table_multigoals
 from language_table.environments.rewards import (
-    block2colours,
+    block2multicolours,
 )
 from language_table.utils.recorder import SimpleRecorder
 
@@ -55,10 +55,10 @@ def main(argv):
     if len(argv) > 1:
         raise app.UsageError("Too many command-line arguments.")
 
-    goal_color = "red"
-    env = language_table_4goals.LanguageTable(
+    goal_color = "red-blue-green-yellow"
+    env = language_table_multigoals.LanguageTable(
         block_mode=blocks.LanguageTableBlockVariants.BLOCK_PURPLE,
-        reward_factory=block2colours.BlockToColoursReward,
+        reward_factory=block2multicolours.BlockToMultiColoursReward,
         control_frequency=15.0,
         show_goals=True,
         render_text_in_image=False,

@@ -39,6 +39,14 @@ class Block2GoalsTaskInfo:
     target_translation: dict
     location: dict
 
+@dataclasses.dataclass
+class Block2MultiColoursTaskInfo:
+    """Class defining a chosen block2multicolour task after reset."""
+
+    instruction: str
+    block: dict
+    target_translation: dict
+    location: dict
 
 @dataclasses.dataclass
 class Block2LocationTaskInfo:
