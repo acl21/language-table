@@ -41,7 +41,17 @@ from scipy.spatial import transform
 import pybullet
 import pybullet_utils.bullet_client as bullet_client
 
-from language_table.environments.rewards.block2multicolours import RED_GOAL, GREEN_GOAL, BLUE_GOAL, YELLOW_GOAL, OUT_OF_BOUNDS, GOAL_LOCATIONS
+from language_table.environments.rewards.block2multicolours import (
+    RED_GOAL,
+    GREEN_GOAL,
+    BLUE_GOAL,
+    YELLOW_GOAL,
+    OUT_OF_BOUNDS,
+    GOAL_LOCATIONS,
+)
+
+import os
+import imageio
 
 
 rgba_dict = {
@@ -123,9 +133,7 @@ class LanguageTable(gym.Env):
         if shared_memory:
             self._connection_mode = pybullet.SHARED_MEMORY
         if shared_memory and show_gui:
-            raise ValueError(
-                "Cannot use shared memory and GUI together. "
-            )
+            raise ValueError("Cannot use shared memory and GUI together. ")
         if show_gui:
             self._connection_mode = pybullet.GUI
         self._setup_pybullet_scene()
@@ -569,9 +577,7 @@ class LanguageTable(gym.Env):
         obs["effector_target_to_start_block_translation"] = np.array(
             poses[self._start_block][0][0:2] - e_target_trans, np.float32
         )
-        obs["start_block_orientation"] = self._yaw_from_pose(
-            poses[self._start_block]
-        )
+        obs["start_block_orientation"] = self._yaw_from_pose(poses[self._start_block])
 
         # Tell obs what the 'target_translation' is. This is the invisible target
         # the oracle is pushing to.
@@ -670,9 +676,18 @@ class LanguageTable(gym.Env):
         """Steps the robot and pybullet sim."""
         # Compute target_effector_pose by shifting the effector's pose by the
         # action.
-        target_effector_translation = np.array(
-            self._target_effector_pose.translation
-        ) + np.array([action[0], action[1], 0])
+        if action["type"] == "abs":
+            target_effector_translation = np.array(
+                [
+                    action["action"][0],
+                    action["action"][1],
+                    self._target_effector_pose.translation[-1],
+                ]
+            )
+        else:
+            target_effector_translation = np.array(
+                self._target_effector_pose.translation
+            ) + np.array([action["action"][0], action[1], 0])
 
         target_effector_translation[0:2] = np.clip(
             target_effector_translation[0:2],
@@ -735,7 +750,7 @@ class LanguageTable(gym.Env):
             block_id = utils_pybullet.load_urdf(self._pybullet_client, path)
             self._block_ids.append(block_id)
             self._block_to_pybullet_id[block] = block_id
-        
+
         if self._show_goals:
             self._goal_circle = {}
             self._goal_circle[RED_GOAL] = add_visual_circle(
@@ -1149,6 +1164,31 @@ class LanguageTable(gym.Env):
                 pybullet.setCollisionFilterPair(
                     self._robot.end_effector, wall, i - 1, -1, 0
                 )
+
+    def record_frame(self, frame):
+        """Record RGB obsservations"""
+        if frame is None:
+            state = self._compute_state()
+            obs = self._compute_observation(state=state)
+            self.frames.append(obs["rgb"])
+        else:
+            self.frames.append(frame)
+
+    def save_recording(self, outdir, fname):
+        """Save recorded frames as a video"""
+        if len(self.frames) == 0:
+            # This shouldn't happen but if it does, the function
+            # call exits gracefully
+            return None
+        fname = f"{fname}.gif"
+        kargs = {"fps": 30}
+        fpath = os.path.join(outdir, fname)
+        imageio.mimsave(fpath, np.array(self.frames), "GIF", **kargs)
+        return fpath
+
+    def reset_recording(self):
+        """Reset recorded frames"""
+        self.frames = []
 
 
 def add_debug_info_to_image(
