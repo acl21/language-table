@@ -57,6 +57,7 @@ class Locations(enum.Enum):
     BOTTOM_LEFT = "bottom_left"
     BOTTOM_RIGHT = "bottom_right"
 
+
 ABSOLUTE_LOCATIONS = {
     "top": [X_MIN, CENTER_Y],
     "top_left": [X_MIN + 3 * X_BUFFER, Y_MIN + 3 * X_BUFFER],
@@ -141,17 +142,61 @@ GOAL_SYNONYMS = {
         "yellow marker",
         "yellow goal",
     ],
-    RG_GOAL: ["either red or green circle", "either red or green dot", "either red or green marker"],
-    RB_GOAL: ["either red or blue circle", "either red or blue dot", "either red or blue marker"],
-    RY_GOAL: ["either red or yellow circle", "either red or yellow dot", "either red or yellow marker"],
-    GB_GOAL: ["either green or blue circle", "either green or blue dot", "either green or blue marker"],
-    GY_GOAL: ["either green or yellow circle", "either green or yellow dot", "either green or yellow marker"],
-    BY_GOAL: ["either blue or yellow circle", "either blue or yellow dot", "either blue or yellow marker"],
-    RGB_GOAL: ["either red or green or blue circle", "either red or green or blue dot", "either red or green or blue marker"],
-    RGY_GOAL: ["either red or green or yellow circle", "either red or green or yellow dot", "either red or green or yellow marker"],
-    RBY_GOAL: ["either red or blue or yellow circle", "either red or blue or yellow dot", "either red or blue or yellow marker"],
-    GBY_GOAL: ["either green or blue or yellow circle", "either green or blue or yellow dot", "either green or blue or yellow marker"],
-    RGBY_GOAL: ["either red or green or blue or yellow circle", "either red or green or blue or yellow dot", "either red or green or blue or yellow marker"],
+    RG_GOAL: [
+        "either red or green circle",
+        "either red or green dot",
+        "either red or green marker",
+    ],
+    RB_GOAL: [
+        "either red or blue circle",
+        "either red or blue dot",
+        "either red or blue marker",
+    ],
+    RY_GOAL: [
+        "either red or yellow circle",
+        "either red or yellow dot",
+        "either red or yellow marker",
+    ],
+    GB_GOAL: [
+        "either green or blue circle",
+        "either green or blue dot",
+        "either green or blue marker",
+    ],
+    GY_GOAL: [
+        "either green or yellow circle",
+        "either green or yellow dot",
+        "either green or yellow marker",
+    ],
+    BY_GOAL: [
+        "either blue or yellow circle",
+        "either blue or yellow dot",
+        "either blue or yellow marker",
+    ],
+    RGB_GOAL: [
+        "either red or green or blue circle",
+        "either red or green or blue dot",
+        "either red or green or blue marker",
+    ],
+    RGY_GOAL: [
+        "either red or green or yellow circle",
+        "either red or green or yellow dot",
+        "either red or green or yellow marker",
+    ],
+    RBY_GOAL: [
+        "either red or blue or yellow circle",
+        "either red or blue or yellow dot",
+        "either red or blue or yellow marker",
+    ],
+    GBY_GOAL: [
+        "either green or blue or yellow circle",
+        "either green or blue or yellow dot",
+        "either green or blue or yellow marker",
+    ],
+    RGBY_GOAL: [
+        "either red or green or blue or yellow circle",
+        "either red or green or blue or yellow dot",
+        "either red or green or blue or yellow marker",
+    ],
     OUT_OF_BOUNDS: ["out of bounds"],
 }
 
@@ -191,6 +236,7 @@ class BlockToMultiColoursReward(base_reward.LanguageTableReward):
         self._location = None
         self._target_translation = None
         self._goal = None
+        self._goal_str = None
         self._multi_goal = False
 
     def _sample_instruction(self, block, blocks_on_table):
@@ -220,9 +266,7 @@ class BlockToMultiColoursReward(base_reward.LanguageTableReward):
                     # Try again with a new board configuration.
                     return task_info.FAILURE
         else:
-            if self._in_goal_region_start(
-                state, self._block, self._target_translation
-            ):
+            if self._in_goal_region_start(state, self._block, self._target_translation):
                 # Try again with a new board configuration.
                 return task_info.FAILURE
         return info
@@ -230,7 +274,7 @@ class BlockToMultiColoursReward(base_reward.LanguageTableReward):
     def reset_to(self, state, block, location, blocks_on_table):
         """Reset to a particular task definition."""
         self._block = block
-        
+
         # Sample an instruction.
         self._instruction = self._sample_instruction(block, blocks_on_table)
 
@@ -255,19 +299,30 @@ class BlockToMultiColoursReward(base_reward.LanguageTableReward):
 
     def reward(self, state):
         """Calculates reward given state."""
+        info = -1
         if self._multi_goal:
             reward, done = self.reward_for(
                 state, self._block, self._target_translation[0]
             )
-            for target in self._target_translation[1:]:
+            if reward > 0:
+                info = 0
+            for idx, target in enumerate(self._target_translation[1:]):
                 reward_, done_ = self.reward_for(state, self._block, target)
+                if reward_ > 0:
+                    info = idx + 1
                 reward = max(reward, reward_)
                 done = done or done_
+            if info < 0:
+                info = ""
+            else:
+                info = self._goal_str.split("-")[info]
         else:
-            reward, done = self.reward_for(
-                state, self._block, self._target_translation
-            )
-        return reward, done
+            info = ""
+            (
+                reward,
+                done,
+            ) = self.reward_for(state, self._block, self._target_translation)
+        return reward, done, info
 
     def reward_for(self, state, pushing_block, target_translation):
         """Returns 1. if pushing_block is in location."""
@@ -321,7 +376,7 @@ class BlockToMultiColoursReward(base_reward.LanguageTableReward):
     def get_goal_region(self):
         """Returns the (target translation, radius) tuple for red and green goals."""
         return self._goal, BLOCK2GOAL_TARGET_DISTANCE
-    
+
     def reward_for_info(self, state, info):
         return self.reward_for(state, info.block, info.target_translation)
 
@@ -331,8 +386,7 @@ class BlockToMultiColoursReward(base_reward.LanguageTableReward):
         current_translation, _ = self._get_pose_for_block(self._block, state)
         # Compute distance between current translation and target.
         dist = np.linalg.norm(
-            np.array(current_translation)
-            - np.array(self._target_translation)
+            np.array(current_translation) - np.array(self._target_translation)
         )
         return dist
 
@@ -346,6 +400,7 @@ class BlockToMultiColoursReward(base_reward.LanguageTableReward):
 
     def set_goal_from_text(self, str):
         if "-" in str:
+            self._goal_str = str
             goal_list = str.split("-")
             r_flag, g_flag, b_flag, y_flag = False, False, False, False
             if "red" in goal_list:
@@ -396,4 +451,3 @@ class BlockToMultiColoursReward(base_reward.LanguageTableReward):
                 raise ValueError("Invalid goal color.")
 
         self._multi_goal = len(self._goal.split("-")) > 1
-

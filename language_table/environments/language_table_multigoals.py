@@ -227,9 +227,13 @@ class LanguageTable(gym.Env):
             reward = 0.0
             done = False
         else:
-            reward, done = self._reward_calculator.reward(state)
+            reward, done, info = self._reward_calculator.reward(state)
         observation = self._compute_observation(state=state)
-        return observation, reward, done, {"state": state}
+        info_dict = {}
+        info_dict["state"] = state
+        if info != "":
+            info_dict["goal_reached"] = info
+        return observation, reward, done, info_dict
 
     def render(self, mode="rgb_array"):
         image = self._render_camera(image_size=self._image_size)
@@ -243,7 +247,7 @@ class LanguageTable(gym.Env):
     @property
     def succeeded(self):
         state = self._compute_state()
-        reward, _ = self._reward_calculator.reward(state)
+        reward, _, _ = self._reward_calculator.reward(state)
         # Assume all board2d rewards are sparse.
         return reward > 0.0
 
