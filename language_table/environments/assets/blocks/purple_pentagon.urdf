@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot name="blue_pentagon.urdf">
+<robot name="purple_pentagon.urdf">
   <link name="baseLink">
     <contact>
       <lateral_friction value="0.5"/>
@@ -16,7 +16,7 @@
       <geometry>
         <mesh filename="pentagon.obj" scale="1.0 1.0 1.0"/>
       </geometry>
-       <material name="blue">
+       <material name="purple">
         <color rgba="1.0 0.4 1.0 1"/>
       </material>
     </visual>

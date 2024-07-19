@@ -112,30 +112,30 @@ def get_blocks_text_descriptions(mode):
 
 BLOCK_URDF_PATHS = collections.OrderedDict(
     # Red blocks.
-    red_moon="third_party/py/language_table/environments/assets/blocks/red_moon.urdf",
-    red_cube="third_party/py/language_table/environments/assets/blocks/red_cube.urdf",
-    red_star="third_party/py/language_table/environments/assets/blocks/red_star.urdf",
-    red_pentagon="third_party/py/language_table/environments/assets/blocks/red_pentagon.urdf",
+    # red_moon="third_party/py/language_table/environments/assets/blocks/red_moon.urdf",
+    # red_cube="third_party/py/language_table/environments/assets/blocks/red_cube.urdf",
+    # red_star="third_party/py/language_table/environments/assets/blocks/red_star.urdf",
+    # red_pentagon="third_party/py/language_table/environments/assets/blocks/red_pentagon.urdf",
     # Blue blocks.
-    blue_moon="third_party/py/language_table/environments/assets/blocks/blue_moon.urdf",
-    blue_cube="third_party/py/language_table/environments/assets/blocks/blue_cube.urdf",
-    blue_star="third_party/py/language_table/environments/assets/blocks/blue_star.urdf",
-    blue_pentagon="third_party/py/language_table/environments/assets/blocks/blue_pentagon.urdf",
+    # blue_moon="third_party/py/language_table/environments/assets/blocks/blue_moon.urdf",
+    # blue_cube="third_party/py/language_table/environments/assets/blocks/blue_cube.urdf",
+    # blue_star="third_party/py/language_table/environments/assets/blocks/blue_star.urdf",
+    # blue_pentagon="third_party/py/language_table/environments/assets/blocks/blue_pentagon.urdf",
     # Yellow blocks.
-    yellow_moon="third_party/py/language_table/environments/assets/blocks/yellow_moon.urdf",
-    yellow_cube="third_party/py/language_table/environments/assets/blocks/yellow_cube.urdf",
-    yellow_star="third_party/py/language_table/environments/assets/blocks/yellow_star.urdf",
-    yellow_pentagon="third_party/py/language_table/environments/assets/blocks/yellow_pentagon.urdf",
+    # yellow_moon="third_party/py/language_table/environments/assets/blocks/yellow_moon.urdf",
+    # yellow_cube="third_party/py/language_table/environments/assets/blocks/yellow_cube.urdf",
+    # yellow_star="third_party/py/language_table/environments/assets/blocks/yellow_star.urdf",
+    # yellow_pentagon="third_party/py/language_table/environments/assets/blocks/yellow_pentagon.urdf",
     # Green blocks.
-    green_moon="third_party/py/language_table/environments/assets/blocks/green_moon.urdf",
-    green_cube="third_party/py/language_table/environments/assets/blocks/green_cube.urdf",
-    green_star="third_party/py/language_table/environments/assets/blocks/green_star.urdf",
-    green_pentagon="third_party/py/language_table/environments/assets/blocks/green_pentagon.urdf",
+    # green_moon="third_party/py/language_table/environments/assets/blocks/green_moon.urdf",
+    # green_cube="third_party/py/language_table/environments/assets/blocks/green_cube.urdf",
+    # green_star="third_party/py/language_table/environments/assets/blocks/green_star.urdf",
+    # green_pentagon="third_party/py/language_table/environments/assets/blocks/green_pentagon.urdf",
     # Purple blocks
-    purple_moon="third_party/py/language_table/environments/assets/blocks/purple_moon.urdf",
+    # purple_moon="third_party/py/language_table/environments/assets/blocks/purple_moon.urdf",
     purple_cube="third_party/py/language_table/environments/assets/blocks/purple_cube.urdf",
-    purple_star="third_party/py/language_table/environments/assets/blocks/purple_star.urdf",
-    purple_pentagon="third_party/py/language_table/environments/assets/blocks/purple_pentagon.urdf",
+    # purple_star="third_party/py/language_table/environments/assets/blocks/purple_star.urdf",
+    # purple_pentagon="third_party/py/language_table/environments/assets/blocks/purple_pentagon.urdf",
 )
 
 POLE_URDF_PATHS = collections.OrderedDict(

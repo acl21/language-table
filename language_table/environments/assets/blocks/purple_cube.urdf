@@ -16,7 +16,7 @@
       <geometry>
         <mesh filename="cube.obj" scale="1.0 1.0 1.0"/>
       </geometry>
-       <material name="blue">
+       <material name="purple">
         <color rgba="1.0 0.4 1.0 1"/>
       </material>
     </visual>
