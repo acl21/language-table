@@ -680,18 +680,23 @@ class LanguageTable(gym.Env):
         """Steps the robot and pybullet sim."""
         # Compute target_effector_pose by shifting the effector's pose by the
         # action.
-        if action["type"] == "abs":
-            target_effector_translation = np.array(
-                [
-                    action["action"][0],
-                    action["action"][1],
-                    self._target_effector_pose.translation[-1],
-                ]
-            )
+        if type(action) == dict:
+            if action["type"] == "abs":
+                target_effector_translation = np.array(
+                    [
+                        action["action"][0],
+                        action["action"][1],
+                        self._target_effector_pose.translation[-1],
+                    ]
+                )
+            else:
+                target_effector_translation = np.array(
+                    self._target_effector_pose.translation
+                ) + np.array([action["action"][0], action[1], 0])
         else:
             target_effector_translation = np.array(
                 self._target_effector_pose.translation
-            ) + np.array([action["action"][0], action[1], 0])
+            ) + np.array([action[0], action[1], 0])
 
         target_effector_translation[0:2] = np.clip(
             target_effector_translation[0:2],

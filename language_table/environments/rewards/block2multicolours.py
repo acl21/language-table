@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Defines block2absolutelocation reset and reward."""
+"""Defines block2multicolours reset and reward."""
 import enum
 
 from typing import Any, List
